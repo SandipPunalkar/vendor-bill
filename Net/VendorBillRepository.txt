@@ -1,0 +1,239 @@
+using MapsoftERP.BusinessLogic.DTO;
+using MapsoftERP.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
+
+namespace MapsoftERP.Repository
+{
+    public class VendorBillRepository
+    {
+        private readonly MapsoftERPContext _context;
+
+        public VendorBillRepository(MapsoftERPContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<VendorBill>> GetVendorBill(GridPagesDTO pagesDTO)
+        {
+            try
+            {
+                return await _context.VendorBill.Include(v => v.Vendor)
+                    .Where(x => x.IsActive == true)
+                    .OrderByDescending(x => x.VendorBillId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in GetVendorBill: {ex.Message}");
+
+            }
+        }
+
+        public async Task<VendorBill> GetVendorBillById(int id)
+        {
+            try
+            {
+                return await _context.VendorBill.Include(v => v.Vendor).ThenInclude(a => a.Address).Include(c => c.Department)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.IsActive == true && x.VendorBillId == id);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in GetVendorBillById: {ex.Message}");
+            }
+        }
+
+        public async Task<List<VendorBill>> GetVendorBillById(int[] ids)
+        {
+            return await _context.VendorBill.Where(x => ids.Contains(x.VendorBillId)).ToListAsync();
+        }
+
+        public async Task<List<VendorBill>> GetVendorBillList()
+        {
+            try
+            {
+                return await _context.VendorBill.Where(s => s.IsActive == true).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"An error occurred while retrieving VendorBill: {ex.Message}", ex);
+            }
+        }
+
+        //public async Task<CreateVendorBillResult> CreateVendorBill(VendorBill vendorBill)
+        //{
+        //    try
+        //    {
+        //        if (await _context.VendorBill.AnyAsync(p => p.VendorBillCode.ToLower() == vendorBill.VendorBillCode.ToLower()))
+        //        {
+        //            return new CreateVendorBillResult
+        //            {
+        //                Success = false,
+        //                Message = "VendorBill Code already exists."
+        //            };
+        //        }
+
+
+        //        vendorBill.IsActive = true;
+        //        _context.VendorBill.Add(vendorBill);
+        //        await _context.SaveChangesAsync();
+
+        //        return new CreateVendorBillResult
+        //        {
+        //            Success = true,
+        //            VendorBillId = vendorBill.VendorBillId,
+        //            Message = "VendorBill created successfully."
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        //Console.WriteLine($"[Error] CreateProjectPhase failed: {ex}");
+        //        return new CreateVendorBillResult
+        //        {
+        //            Success = false,
+        //            Message = "Failed to create VendorBill due to an internal error."
+        //        };
+        //    }
+        //}
+
+        //public async Task<int> CreateVendorBill(VendorBill vendorBill)
+        //{
+        //    try
+        //    {
+        //        bool codeExists = await _context.VendorBill.AnyAsync(p => p.VendorBillCode == vendorBill.VendorBillCode);
+
+        //        if (!codeExists)
+        //        {
+        //            return 0; // VendorBillCode already exists
+        //        }
+
+        //        vendorBill.IsActive = true;
+        //        _context.VendorBill.Add(vendorBill);
+        //        await _context.SaveChangesAsync();
+
+        //        return vendorBill.VendorBillId;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log exception if needed
+        //        return 0; // Return 0 to indicate failure — alternative: throw or return negative value
+        //    }
+        //}
+
+        public async Task<int> CreateVendorBill(VendorBill vendorBill)
+        {
+
+            try
+            {
+                bool projectTimesheetCodeExists = await _context.VendorBill.AnyAsync(p => p.VendorBillCode == vendorBill.VendorBillCode);
+
+                if (projectTimesheetCodeExists)
+                {
+                    return 0;
+                }
+
+                vendorBill.IsActive = true;
+                _context.VendorBill.Add(vendorBill);
+                _context.SaveChanges();
+
+                return vendorBill.VendorBillId;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error creating VendorBill: {ex.Message}");
+            }
+        }
+
+        public async Task<CreateVendorBillResult> UpdateVendorBill(VendorBill vendorBill)
+        {
+            try
+            {
+                var existingVendorBill = await _context.VendorBill
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.VendorBillId == vendorBill.VendorBillId);
+
+                if (existingVendorBill == null)
+                    throw new Exception("VendorBill not found");
+
+                _context.VendorBill.Attach(vendorBill);
+
+                var entry = _context.Entry(vendorBill);
+
+                entry.Property(x => x.BillDate).IsModified = true;
+                entry.Property(x => x.POReceiptHeaderId).IsModified = true;
+                entry.Property(x => x.PONumber).IsModified = true;
+                entry.Property(x => x.VendorId).IsModified = true;
+                entry.Property(x => x.ChallenNo).IsModified = true;
+                entry.Property(x => x.ChallenDate).IsModified = true;
+                entry.Property(x => x.TermsCode).IsModified = true;
+                entry.Property(x => x.DueDate).IsModified = true;
+                entry.Property(x => x.ChequeNo).IsModified = true;
+                entry.Property(x => x.ChequeDate).IsModified = true;
+                entry.Property(x => x.DepartmentId).IsModified = true;
+                entry.Property(x => x.ReceiptAmount).IsModified = true;
+                entry.Property(x => x.TotalGst).IsModified = true;
+                entry.Property(x => x.OtherCharges).IsModified = true;
+                entry.Property(x => x.Discount).IsModified = true;
+                entry.Property(x => x.TotalReceiptAmount).IsModified = true;
+                entry.Property(x => x.Comments).IsModified = true;
+                entry.Property(x => x.UpdatedBy).IsModified = true;
+                entry.Property(x => x.UpdatedDate).IsModified = true;
+                entry.Property(x => x.TermsCode).IsModified = true;
+                entry.Property(x => x.DueDate).IsModified = true;
+
+                await _context.SaveChangesAsync();
+                //return updatedPhase.ProjectPhaseId;
+
+                
+
+                return new CreateVendorBillResult
+                {
+                    Success = true,
+                    VendorBillId = vendorBill.VendorBillId,
+                    Message = "VendorBill created successfully."
+                };
+
+            }
+            catch (Exception ex)
+            {
+                return new CreateVendorBillResult
+                {
+                    Success = false,
+                    Message = "Failed to update VendorBill due to an internal error."
+                };
+            }
+        }
+
+        public async Task DeleteVendorBill(List<VendorBill> vendorBills)
+        {
+            try
+            {
+                foreach (var vendorBill in vendorBills)
+                {
+                    vendorBill.IsActive = false;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in DeleteVendorBill: {ex.Message}");
+
+            }
+        }
+
+        public async Task<List<VendorBill>> SearchVendorBill(string searchText)
+        {
+            return await _context.VendorBill.Include(v => v.Vendor)
+                .Where(p => (p.VendorBillCode.Contains(searchText) || p.VendorBillCode.Contains(searchText)) && p.IsActive == true)
+                   .ToListAsync();
+        }
+
+        public async Task<bool> CheckVendorBillExists(string vendorBillCode)
+        {
+            return await _context.VendorBill.AnyAsync(sb => sb.VendorBillCode == vendorBillCode);
+        }
+
+    }
+}

@@ -1,0 +1,92 @@
+@if(loader){
+<app-loader></app-loader>
+}
+
+<p-card header="Vendor Bill List">
+    <div class="">
+        <div class="flex justify-content-between  flex-wrap">
+            <div class="flex align-items-center justify-content-center">
+                <div>
+                    <p-button label="New" class="p-button-outlined" icon="pi pi-plus-circle"
+                        routerLink="/home/createvendorbill" size="small"></p-button>
+                    <p-button *ngIf="selectedVendorBill && selectedVendorBill.length == 1" label="Edit" class="ml-2"
+                        icon="pi pi-user-edit" (click)="editVendorBill()" size="small" severity="secondary"></p-button>
+                    <p-button *ngIf="selectedVendorBill && selectedVendorBill.length > 0" label="Delete" class="ml-2"
+                        icon="pi pi-trash" (click)="deleteVendorBill()" size="small" severity="danger"></p-button>
+                </div>
+                <div class="fixed-search-container flex align-items-center justify-content-center flex-grow-1">
+                    <span class="p-input-icon-left">
+                        <i class="pi pi-search"></i>
+                        <input pInputText type="text" [(ngModel)]="searchKey" placeholder="search"
+                            class=" p-inputtext-sm" (keyup.enter)="searchVendorBill()" />
+                        <p-button icon="pi pi-search" (onClick)="searchVendorBill()"
+                            [style]="{'margin': '5px 5px 5px 5px', 'height': '35px', 'line-height': '50px'}"
+                            [raised]="true" [size]="'small'" severity="info"></p-button>
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex justify-content-between align-items-center">
+                <div class="flex align-items-center gap-2">
+                    <p-button icon="pi pi-refresh" size="small" (click)="refreshData()" [rounded]="true"
+                        severity="info"></p-button>
+                    <!-- <p-button (onClick)="showCalender()" [pTooltip]="layoutList ? 'View as Calendar' : 'View as List'"
+                        [icon]="layoutList ? 'pi pi-calendar' : 'pi pi-bars'" class="ml-2" size="small"></p-button> -->
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <p-table #dt1 [value]="vendorBill" [scrollable]="true" scrollHeight="650px" styleClass="p-datatable-striped"
+        responsiveLayout="scroll" class="w-full m-5" styleClass="p-datatable-sm " [paginator]="true" [rows]="10"
+        [globalFilterFields]="['vendorBillCode','phaseName']" (onPage)="loadProjectPhase($event)"
+        [(selection)]="selectedVendorBill"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [rowsPerPageOptions]="[10,15,20]">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                </th>
+                <th>Bill No</th>
+                <th>Bill Date</th>
+                <th>Vendor Name</th>
+                <th>Due Date</th>
+                <!-- <th>Status</th> -->
+                <th>Amount</th>
+                <th>Created By</th>
+                <th>Print</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-vendorBill>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="vendorBill"></p-tableCheckbox>
+                </td>
+                <td class="text-blue-500 underline" style="cursor: pointer;"
+                    (click)="editVendorBill(vendorBill.vendorBillId)">{{vendorBill.vendorBillCode}}</td>
+                <td>{{vendorBill.billDate | date: 'dd/MM/yyyy'}}</td>
+                <td>{{vendorBill.vendor.vendorName}}</td>
+                <td>{{vendorBill.dueDate | date: 'dd/MM/yyyy' }}</td>
+                <td></td>
+                <td>{{vendorBill.totalReceiptAmount}}</td>
+                <td>{{vendorBill.createdBy}}</td>
+                <td><span class="pi pi-print" style="color: rgb(0 35 255); cursor: pointer;"
+                        (click)="showReport(vendorBill)"></span></td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="8">No Records found.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-card>
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

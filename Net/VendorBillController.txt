@@ -1,0 +1,207 @@
+using MapsoftERP.BusinessLogic;
+using MapsoftERP.BusinessLogic.DTO;
+using MapsoftERP.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices;
+
+namespace MapsoftERP.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class VendorBillController : ControllerBase
+    {
+        private readonly VendorBillService _vendorBillService;
+
+        public VendorBillController(VendorBillService vendorBillService)
+        {
+            _vendorBillService = vendorBillService;
+        }
+
+
+        [HttpPost]
+        [Route("getVendorBill")]
+        public async Task<ActionResult<VendorBillGridDTO>> GetVendorBill(GridPagesDTO pagesDTO)
+        {
+            try
+            {
+                return Ok(await _vendorBillService.GetVendorBill(pagesDTO));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("getVendorBillbyid")]
+        public async Task<ActionResult<VendorBill>> GetVendorBill(int id)
+        {
+            try
+            {
+                return await _vendorBillService.GetVendorBillById(id);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+            }
+        }
+
+
+        //[HttpPost]
+        //[Route("createVendorBill")]
+        //public async Task<IActionResult> CreateVendorBill([FromBody] VendorBill vendorBill)
+        //{
+        //    try
+        //    {
+        //        // Determine IST time
+        //        string timeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        //            ? "India Standard Time"
+        //            : "Asia/Kolkata";
+
+        //        var indianZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+        //        DateTime indianTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, indianZone);
+
+        //        vendorBill.CreatedDate ??= indianTime;
+
+        //        // Call business logic
+        //        var result = await _vendorBillService.CreateVendorBill(vendorBill);
+
+        //        if (!result.Success)
+        //        {
+        //            return Ok(new
+        //            {
+        //                result.Message,
+        //                success = false
+        //            });
+        //        }
+
+        //        return Ok(new
+        //        {
+        //            result.Message,
+        //            success = true,
+        //            VendorBillId = result.VendorBillId
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            Message = "An unexpected error occurred while creating the VendorBill.",
+        //            success = false
+        //        });
+        //    }
+        //}
+
+        [HttpPost]
+        [Route("createVendorBill")]
+        public async Task<ActionResult<int>> CreateVendorBill([FromBody] VendorBill vendorBill)
+        {
+
+                // Set CreatedDate to current IST time if null
+                string timeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? "India Standard Time"
+                    : "Asia/Kolkata";
+
+                var indianZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                DateTime indianTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, indianZone);
+
+                vendorBill.CreatedDate ??= indianTime;
+
+                int result = await _vendorBillService.CreateVendorBill(vendorBill);
+
+                var message = result == 0 ? "Vendor Bill Code already exists." : "Vendor Bill created successfully.";
+                var success = result != 0;
+
+                return success ? Ok(new { Message = message, success = success }) : BadRequest(new { Message = message, success = success });
+
+        
+        }
+
+        
+
+
+
+        [HttpPost]
+        [Route("updateVendorBill")]
+        public async Task<ActionResult<int>> UpdateVendorBill(VendorBill vendorBill)
+        {
+            try
+            {
+                string timeZoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                  ? "India Standard Time"
+                  : "Asia/Kolkata";
+
+                var indianZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                DateTime indianTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, indianZone);
+
+                vendorBill.UpdatedDate = indianTime;
+
+                var result = await _vendorBillService.UpdateVendorBill(vendorBill);
+
+                return Ok(new { Message = "VendorBill updated successfully.", success = true, VendorBillId = result });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "An error occurred while updating the VendorBill." });
+            }
+        }
+
+
+        [HttpPost]
+        [Route("deleteVendorBill")]
+        public async Task<ActionResult<int>> DeleteVendorBill(int[] VendorBill)
+        {
+            try
+            {
+                {
+                    await _vendorBillService.DeleteVendorBill(VendorBill);
+                    return Ok(new { Message = "VendorBill deleted successfully." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = "An error occurred while deleteing the VendorBill." });
+            }
+        }
+
+        [HttpGet("searchVendorBill")]
+        public async Task<ActionResult<List<VendorBill>>> SearchVendorBill(string searchText)
+        {
+            try
+            {
+                var result = await _vendorBillService.SearchVendorBill(searchText);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("checkVendorBillCode")]
+        public async Task<ActionResult> CheckVendorBillCode(string vendorBillCode)
+        {
+            try
+            {
+                bool projectVendorBillExists = await _vendorBillService.CheckVendorBillExists(vendorBillCode);
+
+                string message = projectVendorBillExists ? "VendorBill Code already exists." : "VendorBill Code does not exist.";
+
+                bool success = projectVendorBillExists ? false : true;
+
+                return Ok(new { Message = message, success = success });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error: {ex.Message}");
+            }
+        }
+
+
+    }
+}

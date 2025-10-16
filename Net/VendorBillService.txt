@@ -1,0 +1,120 @@
+using MapsoftERP.BusinessLogic.DTO;
+using MapsoftERP.Models;
+using MapsoftERP.Repository;
+
+namespace MapsoftERP.BusinessLogic
+{
+    public class VendorBillService
+    {
+        private readonly VendorBillRepository _repository;
+
+        public VendorBillService(VendorBillRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public async Task<VendorBillGridDTO> GetVendorBill(GridPagesDTO pagesDTO)
+        {
+            try
+            {
+                VendorBillGridDTO result = new VendorBillGridDTO();
+
+                var vendorBill = await _repository.GetVendorBill(pagesDTO);
+
+                result.TotalRecords = vendorBill.Count;
+
+                result.VendorBills = vendorBill.Skip(pagesDTO.PageSize * (pagesDTO.PageIndex - 1))
+                    .Take(pagesDTO.PageSize)
+                    .ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in GetVendorBill: {ex.Message}", ex);
+            }
+        }
+        public async Task<VendorBill> GetVendorBillById(int id)
+        {
+            try
+            {
+                return await _repository.GetVendorBillById(id)
+;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in GetVendorBillById: {ex.Message}", ex);
+            }
+        }
+        public async Task<List<VendorBill>> GetVendorBillList()
+        {
+            return await _repository.GetVendorBillList();
+        }
+
+        //public async Task<CreateVendorBillResult> CreateVendorBill(VendorBill vendorBill)
+        //{
+        //    try
+        //    {
+        //        return await _repository.CreateVendorBill(vendorBill);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new ApplicationException($"Error in CreateVendorBill: {ex.Message}", ex);
+        //    }
+        //}
+
+        public async Task<int> CreateVendorBill(VendorBill vendorBill)
+        {
+            try
+            {
+                return await _repository.CreateVendorBill(vendorBill);
+            }
+            catch (Exception ex)
+            {
+                // Optionally log the error here
+                throw new ApplicationException($"Error in CreateVendorBill: {ex.Message}", ex);
+            }
+        }
+
+
+        public async Task<CreateVendorBillResult> UpdateVendorBill(VendorBill updatedVendorBill)
+        {
+            try
+            {
+                return await _repository.UpdateVendorBill(updatedVendorBill);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in UpdateVendorBill: {ex.Message}", ex);
+            }
+        }
+
+
+        public async Task DeleteVendorBill(int[] ids)
+        {
+            try
+            {
+                var vendorBill = await _repository.GetVendorBillById(ids);
+                await _repository.DeleteVendorBill(vendorBill);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException($"Error in DeleteVendorBill: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<List<VendorBill>> SearchVendorBill(string searchText)
+        {
+            return await _repository.SearchVendorBill(searchText);
+        }
+
+        public async Task<bool> CheckVendorBillExists(string vendorBillCode)
+        {
+            return await _repository.CheckVendorBillExists(vendorBillCode);
+        }
+
+
+       
+
+    }
+}

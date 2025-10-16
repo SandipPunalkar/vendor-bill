@@ -1,0 +1,2 @@
+builder.Services.AddTransient<VendorBillRepository>();
+builder.Services.AddTransient<VendorBillService>();

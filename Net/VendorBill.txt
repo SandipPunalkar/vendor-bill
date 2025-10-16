@@ -1,0 +1,41 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MapsoftERP.Models
+{
+    public class VendorBill
+    {
+        public int VendorBillId { get; set; }
+        public string? VendorBillCode { get; set; }
+        public DateTime? BillDate { get; set; }
+       // public int? ReceiptNumber { get; set; }
+        public string? PONumber { get; set; }
+        public int? VendorId { get; set; }
+        public string? ChallenNo { get; set; }
+        public DateTime? ChallenDate { get; set; }
+        public string? TermsCode { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string? ChequeNo { get; set; }
+        public DateTime? ChequeDate { get; set; }
+        public int? DepartmentId { get; set; }
+        public decimal? ReceiptAmount { get; set; }
+        public decimal? TotalGst { get; set; }
+        public decimal? OtherCharges { get; set; }
+        public decimal? Discount { get; set; }
+        public decimal? TotalReceiptAmount { get; set; }
+        public string? Comments { get; set; }
+        public bool IsActive { get; set; } = true;
+        public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+
+        public int? POReceiptHeaderId { get; set; } // <-- Add this
+
+        [NotMapped]
+        public virtual POReceiptHeader? POReceiptHeader { get; set; }
+        //public virtual POReceiptHeader? POReceiptHeader { get; set; }
+        public virtual Vendor? Vendor { get; set; }
+        public virtual Department? Department { get; set; }
+    }
+
+}

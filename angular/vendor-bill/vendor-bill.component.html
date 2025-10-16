@@ -1,0 +1,315 @@
+<!-- @if(loader){
+<app-loader></app-loader>
+} -->
+
+
+
+<p-card [header]="isEditMode ? 'Update Vendor Bill' : 'Create Vendor Bill'">
+    <div class="field col-12 flex justify-content-between align-items-center">
+        <div class="flex">
+            <ng-container>
+                <div>
+                    <!-- <p-button [label]="isEditMode ? 'Update' : 'Save'" class="p-button-outlined ml-2" icon="pi pi-save"
+                        size="small" (click)="save(createVendorBillForm.value, 'save')">
+                    </p-button> -->
+
+      <p-button 
+  [label]="isEditMode ? 'Update' : 'Save'" 
+  class="p-button-outlined ml-2" 
+  icon="pi pi-save"
+  size="small" 
+  (onClick)="save(createVendorBillForm.value, 'Save')">
+</p-button>
+
+
+                </div>
+
+
+            </ng-container>
+
+            <div>
+                <p-button label="Cancel" class="p-button-outlined ml-2" icon="pi pi-times" severity="danger"
+                    size="small" routerLink="/home/listvendorbill">
+                </p-button>
+            </div>
+        </div>
+
+        <div>
+            <label class="block label-required" style="font-weight: bold;">Required Field</label>
+        </div>
+
+    </div>
+
+    <form [formGroup]="createVendorBillForm">
+        <div class="grid mt-4">
+
+            <div class="col">
+
+                <div class="field text-left">
+                    <label for="vendorBillCode" class="label-required display">Bill No</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" pInputText placeholder="e.g B8998" (keydown)="onKeydown($event)"
+                            (blur)="checkVendorBillCode()"
+                            [readonly]="isEditMode || isManual || vendorBill.length > 0" class="w-full"
+                            formControlName="vendorBillCode"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.vendorBillCode.errors }" />
+
+
+                        @if (!isEditMode) {
+                        <div style="margin-left: 10px;">
+                            <p-checkbox formControlName="manualEntry" *ngIf="vendorBill.length == 0"
+                                (onChange)="manualEntry()" [binary]="true" label="Manual Entry"
+                                value="true"></p-checkbox>
+                        </div>
+                        }
+                    </div>
+                    <small
+                        *ngIf="createVendorBillForm.controls.vendorBillCode.invalid && createVendorBillForm.controls.vendorBillCode.dirty && createVendorBillForm.controls.vendorBillCode.errors?.['required']"
+                        class="error-message" style="color: red;">
+                        Vendor bill Code is required.
+                    </small>
+                    <small
+                        *ngIf="createVendorBillForm.controls.vendorBillCode.invalid && createVendorBillForm.controls.vendorBillCode.dirty && createVendorBillForm.controls.vendorBillCode.errors?.['pattern']"
+                        class="error-message" style="color: red;">
+                        Only numeric characters are allowed.
+                    </small>
+                    <div>
+                        <small *ngIf="submitted && formControls.vendorBillCode.errors" class="text-red-500">Required
+                            field.</small>
+                    </div>
+                </div>
+
+
+                <div class="field text-left">
+                    <label for="billDate" class="label-required display">Bill Date</label>
+                    <div class="p-inputgroup p-lookup">
+                        <p-calendar [iconDisplay]="'input'" dateFormat="dd/mm/yy" formControlName="billDate"
+                            [showIcon]="true" placeholder="Select Bill Date"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.billDate.errors }"
+                            styleClass="w-full" (keydown.enter)="focusNextInput($event)"></p-calendar>
+                    </div>
+                    <small *ngIf="submitted && formControls.billDate.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+                <div class="field text-left" style="display: flex; flex-direction: column;"
+                    *ngIf="createVendorBillForm.controls.POReceiptNumber.value">
+                    <label for="POReceiptNumber">Receipt Number</label>
+                    <div style="display: flex; align-items: center;">
+                        <p><strong>{{createVendorBillForm.controls.POReceiptNumber.value}}</strong></p>
+                    </div>
+                </div>
+
+                <div class="field text-left">
+                    <label for="POReceiptHeaderId" class="label-required display">Receipt Order Number</label>
+                    <span class="p-fluid">
+                        <div style="display: flex;">
+                            <p-autoComplete formControlName="POReceiptHeaderId" [readonly]="products.length > 0"
+                                [suggestions]="ReceiptList" (completeMethod)="autosearchReceipts($event)" class="w-full"
+                                (onSelect)="setReceiptNumber($event)" field="poReceiptNumber" Style="width: 285px;"
+                                (keydown.enter)="focusNextInput($event)">
+                                <ng-template let-item pTemplate="item">
+                                    <span>{{item.poReceiptNumber}}</span>
+                                </ng-template>
+                            </p-autoComplete>
+                            <button type="button" [disabled]="products.length > 0" pButton pRipple
+                                (click)="openPOListLookup()" icon="pi pi-search" styleClass="p-button-warn"
+                                style="margin-left: 10px;"></button>
+                        </div>
+                    </span>
+                </div>
+
+                <div class="field text-left ms-1">
+                    <label for="poNumber">PO Number</label>
+                    <div><input pInputText placeholder="Po Number" class="w-full" id="poNumber"
+                            formControlName="poNumber" readonly /></div>
+
+                    <div>
+                        <!-- <small *ngIf="submitted && formControls.phaseName.errors" class="text-red-500">Required
+                            field.</small> -->
+                    </div>
+                </div>
+
+                <div class="field text-left">
+                    <label for="vendorName" class="label-required display">Vendor</label>
+                    <div class="p-inputgroup p-lookup">
+                        <input pInputText formControlName="vendorName" (click)="getVendor()" readonly
+                            styleClass="w-full p-inputtext-sm" placeholder="Search"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.vendorName.errors }" />
+                        <button type="button" [disabled]="products.length > 0" pButton pRipple severity="info"
+                            icon="pi pi-search" (click)="getVendor()"></button>
+                    </div>
+                    <small *ngIf="submitted && formControls.vendorName.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+                <div class="field text-left">
+                    <label for="add">Vendor Address</label>
+                    <div class="p-inputgroup p-lookup">
+                        <input pInputText placeholder="Address" id="address" readonly formControlName="add"
+                            styleClass="w-full" />
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col">
+
+                <div style="display: flex; justify-content: space-around;">
+                    <div class="field text-left">
+                        <label for="challenNo">Challan No</label>
+                        <div class="p-inputgroup p-lookup">
+                            <input pInputText id="challenNo" formControlName="challenNo" styleClass="w-full" />
+                        </div>
+                    </div>
+
+                    <div class="field text-left ml-2">
+                        <label for="challenDate">Challan Date</label>
+                        <div class="p-inputgroup p-lookup">
+                            <p-calendar [iconDisplay]="'input'" dateFormat="dd/mm/yy" formControlName="challenDate"
+                                [showIcon]="true" placeholder="Select Date" styleClass="w-full"></p-calendar>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field text-left">
+                    <label for="termsCode"><b>Payment Terms</b></label>
+                    <div class="p-inputgroup p-lookup">
+                        <input pInputText styleClass="w-full p-inputtext-sm" formControlName="termsCode"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.termsCode.errors }" />
+                        <button type="button" pButton pRipple severity="info" icon="pi pi-search"
+                            (click)="getTermsCode()"></button>
+                    </div>
+                    <small *ngIf="submitted && formControls.termsCode.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+                <div class="field text-left">
+                    <label for="dueDate" class="label-required display">Due Date</label>
+                    <div class="p-inputgroup p-lookup">
+                        <p-calendar [iconDisplay]="'input'" dateFormat="dd/mm/yy" formControlName="dueDate"
+                            [showIcon]="true" placeholder="Select Due Date"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.dueDate.errors }"
+                            styleClass="w-full" (keydown.enter)="focusNextInput($event)"></p-calendar>
+                    </div>
+                    <small *ngIf="submitted && formControls.dueDate.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+                <div class="field text-left">
+                    <label for="chequeNo" class="label-required display">Cheque No</label>
+                    <div class="p-inputgroup p-lookup">
+                        <input pInputText id="chequeNo" formControlName="chequeNo" styleClass="w-full" />
+                    </div>
+                    <!-- <small *ngIf="submitted && formControls.dueDate.errors" id="name-error"
+                        class="text-red-500">Required field.</small> -->
+                </div>
+
+                <div class="field text-left">
+                    <label for="chequeDate" class="label-required display">Cheque Date</label>
+                    <div class="p-inputgroup p-lookup">
+                        <p-calendar [iconDisplay]="'input'" dateFormat="dd/mm/yy" formControlName="chequeDate"
+                            [showIcon]="true" placeholder="Select Cheque Date" styleClass="w-full"
+                            (keydown.enter)="focusNextInput($event)"></p-calendar>
+                    </div>
+                    <!-- <small *ngIf="submitted && formControls.chequeDate.errors" id="name-error"
+                        class="text-red-500">Required field.</small> -->
+                </div>
+
+                <div class="field text-left">
+                    <label for="departmentName" class="label-required display">{{DeptLabel}}</label>
+                    <p-autoComplete [dropdown]="(products.length > 0)? false : true" formControlName="departmentName"
+                        [readonly]="products.length > 0"
+                        [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.departmentName.errors }"
+                        styleClass="w-full" [suggestions]="filterDepartments"
+                        (completeMethod)="filterDepartment($event)" (onSelect)="SelectedDepartment($event)"
+                        field="departmentName" placeholder="Search {{DeptLabel}}">
+                        <ng-template let-item pTemplate="item">
+                            <span>{{item.departmentCode}} - {{item.departmentName}}</span>
+                        </ng-template>
+                    </p-autoComplete>
+                    <small *ngIf="submitted && formControls.departmentName.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+
+            </div>
+
+            <div class="col">
+
+
+                <div class="field text-left">
+                    <label for="receiptAmount" class="label-required display">Receipt Amount</label>
+                    <div class="p-inputgroup p-lookup">
+                        <input pInputText id="receiptAmount" placeholder="Receipt Amount"
+                            formControlName="receiptAmount" styleClass="w-full" type="number" 
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.receiptAmount.errors }"/>
+                    </div>
+                    <small *ngIf="submitted && formControls.receiptAmount.errors" id="name-error"
+                        class="text-red-500">Required field.</small>
+                </div>
+
+                <div class="field text-left ms-1">
+                    <label for="totalGst" class="label-required display">Total GST</label>
+                    <div><input pInputText placeholder="Total GST" class="w-full" formControlName="totalGst"
+                            type="number"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.totalGst.errors }" /></div>
+
+                    <div>
+                        <small *ngIf="submitted && formControls.totalGst.errors" class="text-red-500">Required
+                            field.</small>
+                    </div>
+                </div>
+
+                <div class="field text-left ms-1">
+                    <label for="otherCharges" class="label-required display">Other Charges</label>
+                    <div><input pInputText placeholder="Other Charges" class="w-full" formControlName="otherCharges"
+                            type="number"/></div>
+
+                    <div>
+                        <!-- <small *ngIf="submitted && formControls.otherCharges.errors" class="text-red-500">Required
+                            field.</small> -->
+                    </div>
+                </div>
+
+                <div class="field text-left ms-1">
+                    <label for="discount" class="label-required display">Discount Rs | %</label>
+                    <div><input pInputText placeholder="Discount" class="w-full" formControlName="discount"
+                            type="number"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.discount.errors }" /></div>
+
+                    <div>
+                        <small *ngIf="submitted && formControls.discount.errors" class="text-red-500">Required
+                            field.</small>
+                    </div>
+                </div>
+
+                <div class="field text-left ms-1">
+                    <label for="totalReceiptAmount" class="label-required display">Total Receipt Amount</label>
+                    <div><input pInputText placeholder="Total Receipt Amount" class="w-full"
+                            formControlName="totalReceiptAmount" type="number"
+                            [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.totalReceiptAmount.errors }" />
+                    </div>
+
+                    <div>
+                        <small *ngIf="submitted && formControls.totalReceiptAmount.errors" class="text-red-500">Required
+                            field.</small>
+                    </div>
+                </div>
+
+                <div class="field text-left">
+                    <label for="comments">Comments</label>
+                    <textarea pInputText placeholder="Comments." class="w-full" formControlName="comments"
+                        [ngClass]="{'ng-invalid ng-dirty': submitted && formControls.comments.errors }"
+                        rows="4"></textarea>
+                </div>
+                <div>
+                    <!-- <small *ngIf="submitted && formControls.description.errors" class="text-red-500">Required
+                            field.</small> -->
+                </div>
+
+            </div>
+        </div>
+    </form>
+</p-card>
+<p-confirmDialog></p-confirmDialog>
